@@ -1,137 +1,336 @@
-# Phishing Email Detector
+# AI-Powered Phishing Email Detector
 
-A rule-based tool that scans email text for common phishing indicators
-and classifies the result as **Safe**, **Suspicious**, or **Highly
-Suspicious**.
+An intelligent phishing email detection platform developed using Python and Machine Learning. The project combines rule-based analysis with a machine learning classifier to detect phishing emails and expose the detection engine through a FastAPI REST API. A Chrome extension is included for quick email analysis.
 
-> **Status:** Phase 1 — core detection logic + CLI. Not a production
-> spam filter; this is a heuristic/educational tool. Real-world
-> defenses should also check sender authentication (SPF/DKIM/DMARC),
-> URL reputation, and ideally a trained ML model.
+---
 
-## Project Roadmap
+# Overview
 
-- **Phase 1 (current):** Installable package, core detection logic
-  separated from I/O, CLI entry point, unit tests.
-- **Phase 2 (planned):** Flask/FastAPI web service exposing
-  `analyze_email()` over HTTP.
-- **Later phases:** ML-based scoring, expanded pattern detection
-  (lookalike domains, link/text mismatches), persistence/logging.
+Phishing emails remain one of the most common cyberattacks targeting individuals and organizations. This project aims to improve phishing detection by combining traditional security rules with machine learning techniques.
 
-## Project Structure
+The platform analyzes email content, calculates a phishing score, predicts whether an email is legitimate or phishing, and produces a final hybrid verdict.
+
+---
+
+# Features
+
+## Rule-Based Detection
+
+- Suspicious keyword detection
+- Phishing score calculation
+- URL pattern detection
+- Email classification
+  - Safe
+  - Suspicious
+  - Highly Suspicious
+
+### Suspicious Keywords
+
+- urgent
+- verify account
+- click here
+- password
+- bank
+- login immediately
+
+---
+
+## Machine Learning Detection
+
+The machine learning engine includes:
+
+- TF-IDF Vectorization
+- Logistic Regression Classifier
+- Confidence Score Prediction
+- Real phishing email dataset for training
+
+---
+
+## Hybrid Detection Engine
+
+The final result combines:
+
+- Rule-based analysis
+- Machine learning prediction
+- Basic email header analysis
+
+This approach improves detection reliability compared to using either technique independently.
+
+---
+
+# Technology Stack
+
+## Backend
+
+- Python
+- FastAPI
+- Pydantic
+- Uvicorn
+
+## Machine Learning
+
+- Scikit-learn
+- TF-IDF Vectorizer
+- Logistic Regression
+- Joblib
+
+## Browser Extension
+
+- HTML
+- CSS
+- JavaScript
+- Chrome Extension API
+
+## Development Tools
+
+- Git
+- GitHub
+- Visual Studio Code
+
+---
+
+# Project Architecture
 
 ```
-phishing-detector/
-├── phishing_detector/
-│   ├── __init__.py     # package entry point, exposes analyze_email()
-│   ├── detector.py     # core detection logic (pure functions, no I/O)
-│   └── cli.py           # console input/output only
-├── tests/
-│   └── test_detector.py
+                    User
+                      │
+                      ▼
+            Chrome Extension
+                      │
+                      ▼
+              FastAPI REST API
+                      │
+          ┌───────────┴───────────┐
+          │                       │
+          ▼                       ▼
+ Rule-Based Engine         Machine Learning
+          │                       │
+          └───────────┬───────────┘
+                      ▼
+             Hybrid Detection
+                      │
+                      ▼
+              Detection Result
+```
+
+---
+
+# Project Structure
+
+```
+PhishingEmailDetector/
+│
+├── api.py
+├── Procfile
+├── README.md
 ├── requirements.txt
 ├── setup.py
-└── README.md
+│
+├── phishing_detector/
+│   ├── detector.py
+│   ├── cli.py
+│   └── __init__.py
+│
+├── ml_model/
+│   ├── train.py
+│   ├── train_real.py
+│   ├── predict.py
+│   ├── hybrid.py
+│   ├── header_analyzer.py
+│   ├── email_parser.py
+│   ├── phishing_model.pkl
+│   └── vectorizer.pkl
+│
+├── chrome_extension/
+│
+├── dataset/
+│
+└── tests/
 ```
 
-The detection logic in `detector.py` never calls `input()` or `print()`.
-This is intentional: it's the seam that lets Phase 2 plug a web
-framework in front of the same logic without rewriting it.
+---
 
-## Installation
+# Installation
+
+Clone the repository
 
 ```bash
-# 1. Clone or navigate into the project folder
-cd phishing-detector
+git clone https://github.com/adityawakde/PhishingEmailDetector.git
+```
 
-# 2. (Recommended) create a virtual environment
+Navigate to the project
+
+```bash
+cd PhishingEmailDetector
+```
+
+Create a virtual environment
+
+```bash
 python3 -m venv venv
-source venv/bin/activate      # on Windows: venv\Scripts\activate
+```
 
-# 3. Install dev dependencies (pytest)
+Activate the virtual environment
+
+### macOS / Linux
+
+```bash
+source venv/bin/activate
+```
+
+### Windows
+
+```bash
+venv\Scripts\activate
+```
+
+Install dependencies
+
+```bash
 pip install -r requirements.txt
-
-# 4. Install the package itself in editable mode
-pip install -e .
 ```
 
-## Usage
+---
 
-After installation, run the CLI tool:
+# Running the API
+
+Start the FastAPI server
 
 ```bash
-phishing-detector
+uvicorn api:app --reload
 ```
 
-Or run it directly without installing:
-
-```bash
-python -m phishing_detector.cli
-```
-
-Paste your email text, then press Enter on a blank line to run the
-analysis. Example:
+Open the Swagger documentation
 
 ```
-=== Phishing Email Detector ===
-Paste the email text below. Press Enter twice (blank line) when done:
-
-URGENT: Your account has been suspended. Click here to verify account.
-
-
---- Phishing Detection Report ---
-
-Suspicious phrases found:
-  - 'urgent' (weight: 2)
-  - 'verify account' (weight: 4)
-  - 'click here' (weight: 3)
-  - 'suspended' (weight: 3)
-
-No suspicious URL/pattern indicators found.
-
-Total Phishing Score: 12
-Classification: Highly Suspicious
-----------------------------------
+http://127.0.0.1:8000/docs
 ```
 
-You can also use it as a library, which is how Phase 2's web API will
-call it:
+---
 
-```python
-from phishing_detector import analyze_email
+# API
 
-result = analyze_email("Click here to verify account immediately")
-print(result["classification"])  # "Highly Suspicious"
+## Analyze Email
+
+**Endpoint**
+
+```
+POST /analyze-hybrid
 ```
 
-## Testing
+### Request
 
-Run the unit test suite with:
-
-```bash
-pytest
+```json
+{
+    "text": "URGENT! Verify your bank account immediately."
+}
 ```
 
-For more detail:
+### Example Response
 
-```bash
-pytest -v
+```json
+{
+    "final_verdict": "HIGHLY SUSPICIOUS",
+    "hybrid_score": 11.88,
+    "headers": {},
+    "ml": {
+        "label": "Phishing",
+        "confidence": 97.54
+    },
+    "rules": {
+        "score": 7,
+        "classification": "Highly Suspicious"
+    }
+}
 ```
 
-Tests cover keyword matching, pattern matching, score calculation,
-classification thresholds, and the full `analyze_email()` pipeline
-(including edge cases: empty input, mixed case, non-string input).
+---
 
-## Scoring Logic (current thresholds)
+# Chrome Extension
 
-| Score Range | Classification     |
-|-------------|---------------------|
-| 0 – 2       | Safe                 |
-| 3 – 6       | Suspicious           |
-| 7+          | Highly Suspicious    |
+The Chrome extension currently supports:
 
-Thresholds and keyword weights live in `detector.py` and are easy to
-retune as you collect more sample data.
+- Manual email text input
+- Communication with the FastAPI backend
+- Instant phishing analysis
+- Hybrid detection results
 
-## License
+---
 
-Educational project — license to be decided.
+# Current Project Status
+
+| Module | Status |
+|----------|--------|
+| Rule-Based Detection | ✅ Completed |
+| Machine Learning Model | ✅ Completed |
+| Hybrid Detection Engine | ✅ Completed |
+| FastAPI REST API | ✅ Completed |
+| API Documentation (Swagger) | ✅ Completed |
+| Chrome Extension | ✅ Completed |
+| Cloud Deployment | 🔄 In Progress |
+| React Dashboard | ⏳ Planned |
+| Database Integration | ⏳ Planned |
+| Gmail Scanner | ⏳ Planned |
+| Enterprise Email Security Features | ⏳ Planned |
+
+---
+
+# Roadmap
+
+## Version 1.0
+
+- Rule-based phishing detection
+- Machine learning model
+- Hybrid detection engine
+- FastAPI REST API
+- Chrome extension
+
+## Version 1.1
+
+- Deploy API on Render
+- Public REST API
+- Production configuration
+
+## Version 1.2
+
+- Database integration
+- Scan history
+- React dashboard
+
+## Version 1.3
+
+- Gmail integration
+- Automatic email scanning
+- Improved browser extension
+
+## Version 2.0
+
+- SPF validation
+- DKIM validation
+- DMARC analysis
+- URL reputation analysis
+- Docker support
+- CI/CD pipeline
+
+---
+
+# Future Improvements
+
+- Multiple machine learning models
+- Deep learning-based phishing detection
+- Attachment scanning
+- Domain reputation analysis
+- Threat intelligence integration
+- Real-time monitoring dashboard
+
+---
+
+# Author
+
+Aditya Wakde
+
+---
+
+# License
+
+This project is intended for educational purposes and cybersecurity research. It should only be used in authorized environments and for ethical security testing.
