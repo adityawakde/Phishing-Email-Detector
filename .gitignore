@@ -1,11 +1,37 @@
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
-.pytest_cache/
-*.egg-info/
-build/
-dist/
-.venv/
+*.pyd
+
+# Virtual Environments
 venv/
+.venv/
+
+# IDEs
 .vscode/
 .idea/
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Model files (optional)
+# Uncomment these if you don't want to upload trained models
+# ml_model/phishing_model.pkl
+# ml_model/vectorizer.pkl
+
+# Dataset (optional)
+# dataset/
+
+# macOS
+.DS_Store
+
+# Environment variables
+.env
